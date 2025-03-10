@@ -2,12 +2,14 @@
 
 An interactive poker learning tool that uses LLMs to provide real-time feedback and teaching during poker hands.
 
+![](img/screenshot.png)
+
 ## Features
 
 - Interactive web-based poker interface
 - Real-time game state updates
 - LLM-powered analysis and feedback
-- Poker solver integration for optimal play comparison
+- Poker solver integration for optimal play comparison (TODO)
 - WebSocket-based communication
 
 ## Setup
@@ -46,7 +48,7 @@ An interactive poker learning tool that uses LLMs to provide real-time feedback 
   - `poker_engine/`: Core poker game logic
   - `server/`: FastAPI server and WebSocket handling
   - `solver/`: Poker solver integration (TODO)
-  - `llm/`: OpenRouter LLM integration (TODO)
+  - `llm/`: OpenRouter LLM integration
 - `static/`: Frontend assets
   - `css/`: Stylesheets
   - `js/`: JavaScript files

@@ -23,6 +23,7 @@ class Game:
 	pot: int = 0
 	current_street: Street = Street.PREFLOP
 	current_bet: int = 0
+	hand_history: List[Dict] = field(default_factory=list)  # Track actions and cards for each street
 	active_player_idx: int = 0
 	dealer_pos: int = 0  # Add dealer position tracking
 	small_blind: int = 50
@@ -47,6 +48,7 @@ class Game:
 		self.last_aggressor = None
 		self.round_bets = {}
 		self.players_acted.clear()
+		self.hand_history = []  # Reset hand history for new hand
 		
 		# Ensure all non-eliminated players are active
 		for i, player in enumerate(self.players):
@@ -82,6 +84,17 @@ class Game:
 		self.round_bets[self.small_blind_pos] = self.small_blind
 		self.round_bets[self.big_blind_pos] = self.big_blind
 
+		# Record initial hand state
+		self.hand_history.append({
+			'street': self.current_street.name,
+			'community_cards': [],
+			'actions': [
+				{'player': self.small_blind_pos, 'action': 'small_blind', 'amount': self.small_blind},
+				{'player': self.big_blind_pos, 'action': 'big_blind', 'amount': self.big_blind}
+			]
+		})
+
+
 
 	def handle_action(self, action: str, amount: Optional[int] = None) -> bool:
 		"""Handle a player action (fold, call, or raise). Returns True if action was valid."""
@@ -89,19 +102,42 @@ class Game:
 		self.players_acted[self.active_player_idx] = True  # Mark player as having acted
 		logger.debug(f"Handling action: {action} with amount {amount} for player {player.name}")
 		
+		# Record the action in hand history
+		current_street_history = next((h for h in self.hand_history if h['street'] == self.current_street.name), None)
+		if current_street_history is None:
+			current_street_history = {
+				'street': self.current_street.name,
+				'community_cards': [str(card) for card in self.community_cards],
+				'actions': []
+			}
+			self.hand_history.append(current_street_history)
+		
 		if action == "fold":
 			player.is_active = False
+			current_street_history['actions'].append({
+				'player': self.active_player_idx,
+				'action': 'fold'
+			})
 			logger.debug(f"Player {player.name} folded")
 		elif action == "call":
 			to_call = self.current_bet - (self.round_bets.get(self.active_player_idx, 0))
 			if to_call == 0:
 				# Explicitly record the check in round_bets to track player action
 				self.round_bets[self.active_player_idx] = 0
+				current_street_history['actions'].append({
+					'player': self.active_player_idx,
+					'action': 'check'
+				})
 				logger.debug(f"Player {player.name} checked")
 			else:
 				bet_amount = player.place_bet(to_call)
 				self.pot += bet_amount
 				self.round_bets[self.active_player_idx] = self.round_bets.get(self.active_player_idx, 0) + bet_amount
+				current_street_history['actions'].append({
+					'player': self.active_player_idx,
+					'action': 'call',
+					'amount': to_call
+				})
 				logger.debug(f"Player {player.name} called {to_call}, pot now {self.pot}")
 		elif action == "raise":
 			if amount is None or amount <= self.current_bet:
@@ -114,6 +150,11 @@ class Game:
 				self.round_bets[self.active_player_idx] = self.round_bets.get(self.active_player_idx, 0) + bet_amount
 				self.current_bet = amount
 				self.last_aggressor = self.active_player_idx
+				current_street_history['actions'].append({
+					'player': self.active_player_idx,
+					'action': 'raise',
+					'amount': amount
+				})
 				logger.debug(f"Player {player.name} raised to {amount}, pot now {self.pot}")
 		
 		return self.advance_action()

@@ -200,11 +200,14 @@ async def root():
 
 class ChatMessage(BaseModel):
 	messages: List[Dict[str, str]]
+	game_id: str
 
 @app.post("/api/chat")
 async def chat(message: ChatMessage):
 	try:
-		response = await openrouter_client.chat(message.messages)
+		# Get the game state if it exists
+		game = active_games.get(message.game_id)
+		response = await openrouter_client.chat(message.messages, game)
 		return {"response": response}
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=str(e))

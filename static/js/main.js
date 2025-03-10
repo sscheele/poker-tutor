@@ -1,5 +1,6 @@
 class Chat {
-	constructor() {
+	constructor(game) {
+		this.game = game; // Store reference to game instance
 		this.messagesContainer = document.querySelector('.messages-container');
 		this.chatInput = document.querySelector('.chat-input');
 		this.sendButton = document.querySelector('.chat-send');
@@ -34,7 +35,10 @@ class Chat {
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({ messages: this.messageHistory })
+				body: JSON.stringify({ 
+					messages: this.messageHistory,
+					game_id: 'game1' // Hardcoded for now since we only have one game
+				})
 			});
 
 			if (!response.ok) {
@@ -69,7 +73,7 @@ class PokerGame {
 		console.log('Initializing PokerGame with config:', config);
 		this.config = config;
 		this.ws = null;
-		this.chat = new Chat(); // Initialize chat
+		this.chat = new Chat(this); // Pass game instance to Chat
 		this.connectWebSocket();
 	}
 

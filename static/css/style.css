@@ -496,6 +496,7 @@ body {
 	padding: 8px;
 	border-radius: 4px;
 	max-width: 80%;
+	white-space: pre-wrap;
 }
 
 .user-message {

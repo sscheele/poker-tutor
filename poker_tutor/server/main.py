@@ -1,12 +1,14 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from pathlib import Path
+from typing import Dict, List
 import json
 import logging
 import asyncio
-from typing import Dict, List
 
+from ..llm.openrouter import OpenRouterClient
 from ..poker_engine.game import Game, Street
 from ..poker_engine.player import Player
 
@@ -22,6 +24,9 @@ app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 # Store active games
 active_games: Dict[str, Game] = {}
 active_connections: Dict[str, List[WebSocket]] = {}
+
+# Initialize OpenRouter client
+openrouter_client = OpenRouterClient()
 
 async def handle_bot_actions(game: Game, game_id: str):
 	"""Handle bot actions when it's their turn."""
@@ -192,3 +197,14 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str):
 @app.get("/")
 async def root():
 	return FileResponse(str(static_path / "index.html"))
+
+class ChatMessage(BaseModel):
+	messages: List[Dict[str, str]]
+
+@app.post("/api/chat")
+async def chat(message: ChatMessage):
+	try:
+		response = await openrouter_client.chat(message.messages)
+		return {"response": response}
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=str(e))

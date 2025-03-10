@@ -17,6 +17,30 @@ class OpenRouterClient:
 			"HTTP-Referer": "http://localhost:8000",
 		}
 
+	async def chat(self, messages: List[Dict[str, str]]) -> str:
+		"""Send a chat message to the LLM with message history.
+		
+		Args:
+			messages: List of message dictionaries with 'role' and 'content' keys
+		"""
+		system_message = {
+			"role": "system",
+			"content": "You are a poker coach and tutor. Help users understand poker concepts, strategy, and answer their questions about the game."
+		}
+		
+		async with httpx.AsyncClient() as client:
+			response = await client.post(
+				f"{self.base_url}/chat/completions",
+				headers=self.headers,
+				json={
+					"model": "anthropic/claude-3.5-sonnet",
+					"messages": [system_message] + messages
+				}
+			)
+			
+			response.raise_for_status()
+			return response.json()["choices"][0]["message"]["content"]
+
 	async def analyze_play(
 		self,
 		player_action: Dict,

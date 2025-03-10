@@ -1,3 +1,67 @@
+class Chat {
+	constructor() {
+		this.messagesContainer = document.querySelector('.messages-container');
+		this.chatInput = document.querySelector('.chat-input');
+		this.sendButton = document.querySelector('.chat-send');
+		this.messageHistory = [];
+		this.setupEventListeners();
+	}
+
+	setupEventListeners() {
+		this.sendButton.addEventListener('click', () => this.sendMessage());
+		this.chatInput.addEventListener('keypress', (e) => {
+			if (e.key === 'Enter') {
+				this.sendMessage();
+			}
+		});
+	}
+
+	async sendMessage() {
+		const message = this.chatInput.value.trim();
+		if (!message) return;
+
+		// Add user message to chat and history
+		this.addMessage('user', message);
+		this.messageHistory.push({
+			role: 'user',
+			content: message
+		});
+		this.chatInput.value = '';
+
+		try {
+			const response = await fetch('/api/chat', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ messages: this.messageHistory })
+			});
+
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+
+			const data = await response.json();
+			this.addMessage('assistant', data.response);
+			this.messageHistory.push({
+				role: 'assistant',
+				content: data.response
+			});
+		} catch (error) {
+			console.error('Error:', error);
+			this.addMessage('system', 'Error: Failed to get response');
+		}
+	}
+
+	addMessage(role, content) {
+		const messageDiv = document.createElement('div');
+		messageDiv.className = `message ${role}-message`;
+		messageDiv.textContent = content;
+		this.messagesContainer.appendChild(messageDiv);
+		this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+	}
+}
+
 class PokerGame {
 	static hasInitializedEventListener = false;
 	
@@ -5,6 +69,7 @@ class PokerGame {
 		console.log('Initializing PokerGame with config:', config);
 		this.config = config;
 		this.ws = null;
+		this.chat = new Chat(); // Initialize chat
 		this.connectWebSocket();
 	}
 

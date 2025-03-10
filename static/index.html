@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Poker Tutor</title>
+	<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+	<div class="container">
+		<div id="game-config" class="game-config">
+			<h2>Game Configuration</h2>
+			<div class="config-form">
+				<div class="form-group">
+					<label for="stack-size">Starting Stack:</label>
+					<input type="number" id="stack-size" value="1000" min="100" step="100">
+				</div>
+				<div class="form-group">
+					<label for="small-blind">Small Blind:</label>
+					<input type="number" id="small-blind" value="5" min="1" step="1">
+				</div>
+				<div class="form-group">
+					<label for="opponents">Number of Opponents:</label>
+					<input type="number" id="opponents" value="5" min="1" max="8">
+				</div>
+				<div class="form-group">
+					<label for="difficulty">Difficulty:</label>
+					<select id="difficulty">
+						<option value="normal">Normal</option>
+					</select>
+				</div>
+				<button id="start-game">Start Game</button>
+			</div>
+		</div>
+		<div id="game-table" class="game-table hidden">
+			<div class="poker-table">
+				<div class="community-cards"></div>
+				<div class="pot"></div>
+				<div class="players"></div>
+				<div id="game-over" class="game-over hidden">
+					<div class="game-over-content">
+						<h2>Game Over</h2>
+						<p id="game-over-message"></p>
+						<button id="new-game">Start New Game</button>
+					</div>
+				</div>
+			</div>
+			<div class="chat-interface">
+				<div class="chat-messages"></div>
+				<div class="action-buttons">
+					<button id="fold">Fold</button>
+					<button id="call">Call</button>
+					<button id="raise">Raise</button>
+					<div class="raise-control">
+						<input type="range" id="raise-amount" min="0" max="100" value="0">
+						<div id="raise-markers"></div>
+					</div>
+					<button id="next-hand" class="hidden">Next Hand</button>
+				</div>
+				<!-- <div class="tutor-feedback"></div> -->
+			</div>
+		</div>
+	</div>
+	<script src="/static/js/main.js"></script>
+</body>
+</html>
